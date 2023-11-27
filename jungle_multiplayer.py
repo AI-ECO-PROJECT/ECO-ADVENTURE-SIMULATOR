@@ -2,19 +2,23 @@ import pygame
 from pygame import mixer
 from pygame.locals import *
 import random
+import time
+
+# Global sprite groups
+acid_rain_group = pygame.sprite.Group()
 
 
+# Initialize Pygame, mixer, and clock
 pygame.mixer.pre_init(44100, -16, 2, 512)
 mixer.init()
 pygame.init()
-
 clock = pygame.time.Clock()
 fps = 60
 
-#define screen size
-screen_width = pygame.display.Info().current_w  # 1356
+# Screen size and setup
+screen_width = pygame.display.Info().current_w
 screen_height = pygame.display.Info().current_h
-half_screen_width = int(screen_width/2)  # 768
+half_screen_width = int(screen_width / 2)
 screen = pygame.display.set_mode((screen_width, screen_height))
 
 #background
@@ -56,8 +60,8 @@ btCout = pygame.image.load('img/Button-Continue.png')
 btQuit = pygame.image.load('img/Button-Quit.png')
 btReturn = pygame.image.load('img/Button-MainMenu.png')
 btStart = pygame.image.load('img/Button-Start.png')
-bt_Cout = pygame.transform.scale(btCout, (180, 120))
-bt_Quit = pygame.transform.scale(btQuit, (180, 120))
+bt_Cout = pygame.transform.scale(btCout, (200, 200))
+bt_Quit = pygame.transform.scale(btQuit, (200, 200))
 bt_Return = pygame.transform.scale(btReturn, (180, 120))
 bt_Start = pygame.transform.scale(btStart, (180, 120))
 
@@ -75,15 +79,11 @@ speed_right_bin_pic2 = pygame.image.load("img/blue_right_trash_bin_speed.png")
 
 
 #define game varibale
-rows = 2            # No. cloud rows
-cols = 2            # No. cloud colum
-box_width = 120  # single box width
-score = 0
-score2 = 0
-collection = 0
-collection2 = 0
-speed = 6
-speed2 = 6
+rows, cols = 2, 2
+box_width = 120
+score, score2 = 0, 0
+collection, collection2 = 0, 0
+speed, speed2 = 6, 6
 
 
 #define colours
@@ -109,80 +109,15 @@ water_sound = pygame.mixer.Sound('sound/water_bubble.wav')
 special_sound = pygame.mixer.Sound('sound/special_power.wav')
 
 
-#create player class
-class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-       pygame.sprite.Sprite.__init__(self)
-       self.image = pygame.transform.scale(left_bin_pic, (int(screen_width/15), int(screen_height/8)))
-       self.rect = self.image.get_rect()
-       self.rect.center = [x, y]
-       self.score = score
-       self.collection = collection
-       self.speed = speed
+global bot_player, player2
 
-    def update(self):
-        #set game over
-        game_over = 0
-        level = 0
+def MP_game():
+    global bot_player, player2
+    bot_player = BotPlayer(int(half_screen_width / 2), screen_height - 80)
+    player_group.add(bot_player)
 
-        #get key press
-        key = pygame.key.get_pressed()
-        if key[pygame.K_a]:
-            if self.rect.left > 0:
-                self.rect.x -= self.speed
-                if self.speed == speed + 4:
-                   self.image = pygame.transform.scale(speed_left_bin_pic, (int(screen_width/15), int(screen_height/8)))  # speed buff
-                else:
-                    self.image = pygame.transform.scale(left_bin_pic, (int(screen_width/15), int(screen_height/8)))  # move effect
-
-        if key[pygame.K_d]:
-            if self.rect.right < half_screen_width:
-                self.rect.x += self.speed
-                if self.speed == speed + 4:
-                   self.image = pygame.transform.scale(speed_right_bin_pic, (int(screen_width/15), int(screen_height/8)))  # speed buff
-                else:
-                    self.image = pygame.transform.scale(right_bin_pic, (int(screen_width/15), int(screen_height/8)))  # move effect
-      
-        #update mask
-        self.mask = pygame.mask.from_surface(self.image)
-
-        #draw player1
-        p1 = "Player 1"
-        p1_img = font30.render(p1, True, black)
-        screen.blit(p1_img, (half_screen_width/2, 0))
-
-        #draw score box
-        screen.blit(star_pic, (5, 5))
-        score_txt = ": " + str(self.score) + "/80"
-        score_img = font40.render(score_txt, True, black)
-        screen.blit(score_img, (100, 15))
-
-        if self.score == -1:
-            game_over = -1
-        if self.score == 80:
-            game_over = 1
-
-        if self.collection == 45:
-            posX = self.rect.x
-            posY = 0
-
-            createPower = SpecialPower(posX, posY)
-            power_group.add(createPower)
-            player.collection += 1
-
-        #the background change arrcording different level of rubish collected
-        if self.score > 1 and self.score < 40:
-            level = 3
-        if self.score > 41 and self.score < 66:
-            level = 2
-        if self.score > 67:
-            level = 1
-
-        return game_over, level
-
-#create player class2
-#create player class
-
+    player2 = Player2(int(half_screen_width / 2) + half_screen_width, screen_height - 80)
+    player_group2.add(player2)
 
 class Player2(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -253,6 +188,33 @@ class Player2(pygame.sprite.Sprite):
             level = 1
 
         return game_over2, level2
+class BotPlayer(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.transform.scale(left_bin_pic, (int(screen_width/15), int(screen_height/8)))
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.score = score
+        self.collection = collection
+        self.speed = speed
+
+    def update(self):
+        # Get the positions of the falling items
+        acid_rain_positions = [(acid_rain.rect.x, acid_rain.rect.y) for acid_rain in acid_rain_group]
+        if acid_rain_positions:
+            # Choose the closest falling item
+            closest_acid_rain = min(acid_rain_positions, key=lambda pos: abs(pos[0] - self.rect.centerx))
+
+            # Move towards the closest falling item
+            if closest_acid_rain[0] < self.rect.centerx and self.rect.left > 0:
+                self.rect.x -= self.speed
+                self.image = pygame.transform.scale(left_bin_pic, (int(screen_width/15), int(screen_height/8)))
+            elif closest_acid_rain[0] > self.rect.centerx and self.rect.right < half_screen_width:
+                self.rect.x += self.speed
+                self.image = pygame.transform.scale(right_bin_pic, (int(screen_width/15), int(screen_height/8)))
+
+
+
 
 #create cloud class
 class Cloud(pygame.sprite.Sprite):
@@ -286,15 +248,14 @@ class Rain(pygame.sprite.Sprite):
         self.score = 0
         self.x = x
 
-    def update(self):
+    def update(self, bot_player, player2):
         self.rect.y += 3
         if self.rect.top > screen_height:
             self.kill()
             if self.x < half_screen_width:
-                player.collection += 1  # minus mark
+                bot_player.collection += 1  # Update bot player's collection
             else:
-                player2.collection2 += 1  # minus mark
-
+                player2.collection2 += 1  # Update player 2's collection
 
         if pygame.sprite.spritecollide(self, player_group, False, pygame.sprite.collide_mask):
             water_sound.play()
@@ -319,29 +280,34 @@ class AcidRain(pygame.sprite.Sprite):
         if self.rect.top > screen_height:
             self.kill()
             if self.x < half_screen_width:
-                player.score -= 1  # minus mark
+                bot_player.score -= 1  # Minus mark for bot player
             else:
-                player2.score2 -= 1  # minus mark
+                player2.score2 -= 1  # Minus mark for human player
 
             pos1 = self.rect.x, self.rect.y
-            m = MinusText('-1',  score_font, pos1, screen)
+            m = MinusText('-1', score_font, pos1, screen)
             minus_group.add(m)
 
+        # Collision with bot player
         if pygame.sprite.spritecollide(self, player_group, False, pygame.sprite.collide_mask):
             dust_sound.play()
             self.kill()
-            player.score += 1
+            bot_player.score += 1  # Update bot player's score
             pos = self.rect.x, self.rect.y
-            s = PlusText('+1',  score_font, pos, screen)
+            s = PlusText('+1', score_font, pos, screen)
             plus_group.add(s)
 
+        # Collision with human player (player2)
         if pygame.sprite.spritecollide(self, player_group2, False, pygame.sprite.collide_mask):
             dust_sound.play()
             self.kill()
-            player2.score2 += 1
+            player2.score2 += 1  # Update human player's score
             pos = self.rect.x, self.rect.y
-            s = PlusText('+1',  score_font, pos, screen)
+            s = PlusText('+1', score_font, pos, screen)
             plus_group.add(s)
+
+for sprite in acid_rain_group:
+    sprite.update(bot_player, player2)
 
 class PlusText(pygame.sprite.Sprite):
 	def __init__(self, text, font, pos, screen):
@@ -435,12 +401,6 @@ def create_2nd_clouds():
             cloud_group2.add(cloud)
 
 
-#create player
-player = Player(int(half_screen_width / 2), screen_height - 80)
-player_group.add(player)
-
-player2 = Player2(int(half_screen_width / 2) +half_screen_width, screen_height - 80)
-player_group2.add(player2)
 
 def emptyGroup():
     player_group.remove()
@@ -507,14 +467,16 @@ def unpause():
     pygame.mouse.set_visible(False)
 
 
+def text_objects(text, font, text_color=(255, 255, 0)):  # Default color set to red
+    textSurface = font.render(text, True, text_color)
+    return textSurface, textSurface.get_rect()
+
 def paused():
 
-    TextSurf, TextRect = text_objects("Paused", font120)
-    TextRect.center = ((screen_width/2), (screen_height/2))
-    pygame.draw.rect(screen, white, pygame.Rect(int(screen_width / 2 - 190), int(screen_height/2-50), 380, 120))
+    TextSurf, TextRect = text_objects("Paused", font120)  # This will use red color
+    TextRect.center = ((screen_width / 2), (screen_height / 2))
     screen.blit(TextSurf, TextRect)
-    screen.blit(bt_Pause, (screen_width/2 - 100, screen_height/2 - 300))
-
+    screen.blit(bt_Pause, (screen_width / 2 - 100, screen_height / 2 - 300))
     while pause:
         for event in pygame.event.get():
 
@@ -526,10 +488,12 @@ def paused():
                     unpause()
 
         img_button(bt_Cout, screen_width/2 - 350, screen_height - 250, unpause)
-        img_button(bt_Quit, screen_width/2 + 200,screen_height - 250, quitgame)
+        img_button(bt_Quit, screen_width/2 + 200, screen_height - 250, quitgame)
+
 
         pygame.display.update()
         clock.tick(60)
+
 
 def startPage():
 
@@ -550,7 +514,15 @@ def startPage():
         pygame.display.update()
         clock.tick(60)
 
+
+
 def MP_game():
+
+    global bot_player, player2
+    bot_player = BotPlayer(int(half_screen_width / 2), screen_height - 80)
+    player_group.add(bot_player)
+    player2 = Player2(int(half_screen_width / 2) + half_screen_width, screen_height - 80)
+    player_group2.add(player2)
 
     #define initial game varibale
     drop_intervel = 1000
@@ -613,22 +585,22 @@ def MP_game():
                         last_item_drop = time_now
 
             if game_over == 0 and game_over2 == 0:
+                # Update bot player
+                bot_player.update()  # This will automatically move the bot based on falling items
 
+                # Update human player (Player 2)
+                game_over2, level2 = player2.update()  # Player 2 updates based on key presses
 
-                #update player
-                game_over, level = player.update()
-                game_over2, level2 = player2.update()
-
-                #update sprite groups
+                # Update sprite groups
                 cloud_group.update()
                 cloud_group2.update()
-                acid_rain_group.update()
-                rain_group.update()
+                acid_rain_group.update()  # This might also need bot_player and player2 if similar logic is used
+                rain_group.update(bot_player, player2)  # Updated to pass bot_player and player2
                 plus_group.update()
                 minus_group.update()
                 power_group.update()
 
-                #draw sprite groups
+                # Draw sprite groups
                 player_group.draw(screen)
                 player_group2.draw(screen)
                 cloud_group.draw(screen)                    
@@ -696,21 +668,13 @@ def MP_game():
                 last_count = count_timer
 
         #event handler
+         # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == KEYDOWN :
+            if event.type == KEYDOWN:
                 if event.key == K_ESCAPE or event.key == pygame.K_p:
                     pause = True
                     paused()
 
-            if event == Event1:
-                first = False  # stop the event only run 1 time
-                pause = True
-                countdown = 3
-                startPage()
-
         pygame.display.update()
-
-
-MP_game()

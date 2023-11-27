@@ -58,8 +58,8 @@ btCout = pygame.image.load('img/Button-Continue.png')
 btQuit = pygame.image.load('img/Button-Quit.png')
 btReturn = pygame.image.load('img/Button-Continue.png')
 btStart = pygame.image.load('img/Button-Start.png')
-bt_Cout = pygame.transform.scale(btCout, (180, 120))
-bt_Quit = pygame.transform.scale(btQuit, (180, 120))
+bt_Cout = pygame.transform.scale(btCout, (200, 200))
+bt_Quit = pygame.transform.scale(btQuit, (200, 200))
 bt_Return = pygame.transform.scale(btReturn, (180, 120))
 bt_Start = pygame.transform.scale(btStart, (180, 120))
 
@@ -346,12 +346,18 @@ class Water(pygame.sprite.Sprite):
 
 
         if pygame.sprite.spritecollide(self, player_group, False, pygame.sprite.collide_mask):
-            pull_water.play()  # play sound effect
             self.kill()
+            player.score -= 1 #minus mark
+            pos1 = self.rect.x, self.rect.y
+            m = MinusText('-1',  score_font, pos1, screen)
+            minus_group.add(m)
         
         if pygame.sprite.spritecollide(self, player_group2, False, pygame.sprite.collide_mask):
-            pull_water.play()  # play sound effect
             self.kill()
+            player2.score2 -= 1 #minus mark
+            pos1 = self.rect.x, self.rect.y
+            m = MinusText('-1',  score_font, pos1, screen)
+            minus_group.add(m)
 
 
 class PlusText(pygame.sprite.Sprite):
@@ -519,14 +525,16 @@ def unpause():
     pause = False
     pygame.mouse.set_visible(False)
 
+def text_objects(text, font, text_color=(255, 255, 0)):  # Default color set to red
+    textSurface = font.render(text, True, text_color)
+    return textSurface, textSurface.get_rect()
+
 def paused():
 
-    TextSurf, TextRect = text_objects("Paused", font120)
-    TextRect.center = ((screen_width/2), (screen_height/2))
-    pygame.draw.rect(screen, white, pygame.Rect(int(screen_width / 2 - 190), int(screen_height/2-50), 380, 120))
+    TextSurf, TextRect = text_objects("Paused", font120)  # This will use red color
+    TextRect.center = ((screen_width / 2), (screen_height / 2))
     screen.blit(TextSurf, TextRect)
-    screen.blit(bt_Pause, (screen_width/2 -100, screen_height/2 - 300))
-
+    screen.blit(bt_Pause, (screen_width / 2 - 100, screen_height / 2 - 300))
     while pause:
         for event in pygame.event.get():
 
@@ -542,7 +550,7 @@ def paused():
 
 
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(15)
 
 
 def story1():
@@ -589,7 +597,7 @@ def game():
     
     while run:
 
-        clock.tick(fps)
+        clock.tick(60)
 
         #draw background
         draw_bg(defaultScreen,defaultScreen2)
@@ -743,6 +751,3 @@ def game():
 
 
         pygame.display.update()
-
-
-game()

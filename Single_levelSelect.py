@@ -15,9 +15,9 @@ picture = pygame.image.load('img/level_bg.jpg')
 background = pygame.transform.scale(picture, (screen_width, screen_height))
 
 instruction1 = pygame.image.load('img/river_Intro.png')
-intro1 = pygame.transform.scale(instruction1, (screen_width -100, int(screen_height/1.4)))
+intro1 = pygame.transform.scale(instruction1, (700, int(screen_height/2)))
 instruction2= pygame.image.load('img/jungle_Intro.png')
-intro2 = pygame.transform.scale(instruction2, (screen_width - 100, int(screen_height/1.4)))
+intro2 = pygame.transform.scale(instruction2, (700, int(screen_height/2)))
 
 bt1 = pygame.image.load('img/Button-01.png')
 bt2 = pygame.image.load('img/Button-02.png')
@@ -57,7 +57,14 @@ def main_menu():
 
         mx, my = pygame.mouse.get_pos()
         font80.set_underline(True)
-        draw_text('Select Level To Play', font80, (0, 0, 0), screen, screen_width/2 -380, 20)
+
+
+        # Set the color to green
+        green_color = (32, 32, 32)  # This is the RGB representation for green
+
+        # Update your draw_text function call
+        draw_text('Select Level To Play', font80, green_color, screen, screen_width // 2 - 380, 20)
+
 
 
         button_1 = screen.blit(bt_img1, (screen_width/2 - 250, 120))
@@ -102,11 +109,11 @@ def main_menu():
         clock.tick(60)
 
 def showLV1():
-    screen.blit(intro1, (50, screen_height/2 - 200))
+    screen.blit(intro1, (600, screen_height/2 - 200))
 
 
 def showLV2():
-    screen.blit(intro2, (50, screen_height/2 - 200))
+    screen.blit(intro2, (600, screen_height/2 - 200))
 
 def level1():
     import riverStage

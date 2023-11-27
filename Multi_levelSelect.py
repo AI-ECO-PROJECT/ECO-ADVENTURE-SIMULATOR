@@ -14,16 +14,16 @@ picture = pygame.image.load('img/level_bg.jpg')
 background = pygame.transform.scale(picture, (screen_width, screen_height))
 
 instruction1 = pygame.image.load('img/river_Multi_Intro.png')
-intro1 = pygame.transform.scale(instruction1, (screen_width -100, int(screen_height/1.4)))
+intro1 = pygame.transform.scale(instruction1, (700, int(screen_height/2)))
 instruction2= pygame.image.load('img/jungle_Multi_Intro.png')
-intro2 = pygame.transform.scale(instruction2, (screen_width - 100, int(screen_height/1.4)))
+intro2 = pygame.transform.scale(instruction2, (700, int(screen_height/2)))
 
 bt1 = pygame.image.load('img/Button-01.png')
 bt2 = pygame.image.load('img/Button-02.png')
 bt3 = pygame.image.load('img/Button-Play.png')
 bt_img1 = pygame.transform.scale(bt1, (100, 100))
 bt_img2 = pygame.transform.scale(bt2, (100, 100))
-bt_imgPlay = pygame.transform.scale(bt3, (150, 150))
+bt_imgPlay = pygame.transform.scale(bt3, (200, 200))
 
 font20 = pygame.font.SysFont('freesansbold.ttf', 20)
 font32 = pygame.font.Font('freesansbold.ttf', 32)
@@ -102,11 +102,11 @@ def main_menu():
         clock.tick(60)
 
 def showLV1():
-    screen.blit(intro1, (50, screen_height/2 - 200))
+    screen.blit(intro1, (600, screen_height/2 - 200))
 
 
 def showLV2():
-    screen.blit(intro2, (50, screen_height/2 - 200))
+    screen.blit(intro2, (600, screen_height/2 - 200))
 
 def level1():
     import river_multiplayer

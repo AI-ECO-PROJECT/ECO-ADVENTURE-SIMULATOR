@@ -53,10 +53,10 @@ btCout = pygame.image.load('img/Button-Continue.png')
 btQuit = pygame.image.load('img/Button-Quit.png')
 btReturn = pygame.image.load('img/Button-Continue.png')
 btStart = pygame.image.load('img/Button-Start.png')
-bt_Cout = pygame.transform.scale(btCout, (180, 120))
-bt_Quit = pygame.transform.scale(btQuit, (180, 120))
-bt_Return = pygame.transform.scale(btReturn, (180, 120))
-bt_Start = pygame.transform.scale(btStart, (180, 120))
+bt_Cout = pygame.transform.scale(btCout, (200, 200))
+bt_Quit = pygame.transform.scale(btQuit, (200, 200))
+bt_Return = pygame.transform.scale(btReturn, (200, 200))
+bt_Start = pygame.transform.scale(btStart, (200, 200))
 
 
 #Pollution Story Notice
@@ -68,7 +68,7 @@ rows = 1  # No. cloud rows
 cols = 4  # No. cloud colum
 score = 0
 collection = 0
-speed = 6
+speed = 15
 
 #define colours
 white = (255, 255, 255)
@@ -216,10 +216,11 @@ class Rubish(pygame.sprite.Sprite):
             pos = self.rect.x, self.rect.y
             s = PlusText('+1',  score_font, pos, screen)
             plus_group.add(s)
+        
 
 
 
-#create water class
+
 class Water(pygame.sprite.Sprite):
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
@@ -230,15 +231,17 @@ class Water(pygame.sprite.Sprite):
 
     def update(self):
 
-        self.rect.y += 2 
+        self.rect.y += 3
         if self.rect.top > screen_height:
+            pull_object.play() #play sound effect
             self.kill()
-            player.collection += 1
 
         if pygame.sprite.spritecollide(self, player_group, False, pygame.sprite.collide_mask):
-            pull_water.play() #play sound effect
             self.kill()
-            # player.score += 1  # increase mark
+            player.score -= 1 #minus mark
+            pos1 = self.rect.x, self.rect.y
+            m = MinusText('-1',  score_font, pos1, screen)
+            minus_group.add(m)
 
 
 class PlusText(pygame.sprite.Sprite):
@@ -398,26 +401,33 @@ def unpause():
 
 
 
+def text_objects(text, font, text_color=(255, 0, 0)):  # Default color set to red
+    textSurface = font.render(text, True, text_color)
+    return textSurface, textSurface.get_rect()
+
 def paused():
 
-    TextSurf, TextRect = text_objects("Paused", font120)
-    TextRect.center = ((screen_width/2), (screen_height/2))
+    TextSurf, TextRect = text_objects("Paused", font120)  # This will use red color
+    TextRect.center = ((screen_width / 2), (screen_height / 2))
     screen.blit(TextSurf, TextRect)
-    screen.blit(bt_Pause, (screen_width/2 -100, screen_height/2 - 300))
-
+    screen.blit(bt_Pause, (screen_width / 2 - 100, screen_height / 2 - 300))
     while pause:
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+            if event.type == KEYDOWN:
+                if event.key == K_p:
+                    unpause()
 
         img_button(bt_Cout, screen_width/2 - 350, screen_height - 250, unpause)
         img_button(bt_Quit, screen_width/2 + 200, screen_height - 250, quitgame)
 
 
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(15)
+
 
 
 def replay():
@@ -489,7 +499,7 @@ def game():
   
     while run:
 
-        clock.tick(fps)
+        clock.tick(60)
 
         #draw background
         draw_bg(defaultScreen)

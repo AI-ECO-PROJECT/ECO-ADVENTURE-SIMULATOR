@@ -2,6 +2,32 @@ import pygame, sys
 from pygame import mixer
 from pygame.locals import *
 
+class Button:
+    def __init__(self, img, x, y):
+        self.original_img = img
+        self.img = img
+        self.rect = self.img.get_rect(center=(x, y))
+        self.hovered = False
+
+    def update(self, mouse_pos):
+        if self.rect.collidepoint(mouse_pos):
+            if not self.hovered:
+                self.hovered = True
+                # Scale up the image for hover effect (can adjust the scale factor as needed)
+                self.img = pygame.transform.scale(self.original_img, (int(self.rect.width * 1.1), int(self.rect.height * 1.1)))
+        else:
+            if self.hovered:
+                self.hovered = False
+                self.img = self.original_img
+
+    def draw(self, surface):
+        surface.blit(self.img, self.rect)
+
+    def is_clicked(self, mouse_pos, mouse_pressed):
+        return self.rect.collidepoint(mouse_pos) and mouse_pressed
+
+
+
 
 clock = pygame.time.Clock()
 
@@ -25,7 +51,7 @@ screen_height = pygame.display.Info().current_h
 screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 
 #background
-picture = pygame.image.load('img/GreenDefense.jpg')
+picture = pygame.image.load('img/bg.png')
 background = pygame.transform.scale(picture, (screen_width, screen_height))
 
 font100 = pygame.font.Font('Fonts/PatrickHand-Regular.ttf', 80)
@@ -35,15 +61,15 @@ bt1 = pygame.image.load('img/Button-Singleplayer.png')
 bt2 = pygame.image.load('img/Button-Multiplayer.png')
 bt3 = pygame.image.load('img/Button-Option.png')
 bt4 = pygame.image.load('img/Button-Quit.png')
-bt_Single = pygame.transform.scale(bt1, (180, 100))   
-bt_Multi = pygame.transform.scale(bt2, (180, 100))
-bt_Option = pygame.transform.scale(bt3, (180, 100))
-bt_Quit = pygame.transform.scale(bt4, (180, 100))
+bt_Single = pygame.transform.scale(bt1, (200, 200))   
+bt_Multi = pygame.transform.scale(bt2, (200, 200))
+bt_Option = pygame.transform.scale(bt3, (200, 200))
+bt_Quit = pygame.transform.scale(bt4, (200, 200))
 
 soundOn = pygame.image.load('img/sound-on.png')
 soundOff = pygame.image.load('img/sound-off.png')
-bt_On = pygame.transform.scale(soundOn, (180, 100))
-bt_Off = pygame.transform.scale(soundOff, (180, 100))
+bt_On = pygame.transform.scale(soundOn, (200, 200))
+bt_Off = pygame.transform.scale(soundOff, (200, 200))
 
 
 
@@ -53,53 +79,78 @@ def draw_text(text, font, color, surface, x, y):
     textRect.topleft = (x,y)
     surface.blit(textObj,textRect)
 
+# Load normal, hover, and pressed images for bt_Single
+bt_Single_normal = pygame.transform.scale(bt1, (180, 100))
+
+# Load normal, hover, and pressed images for bt_Multi
+bt_Multi_normal = pygame.transform.scale(bt2, (180, 100))
+
+
+# Load normal, hover, and pressed images for bt_Option
+bt_Option_normal = pygame.transform.scale(bt3, (180, 100))
+
+
+# Load normal, hover, and pressed images for bt_Quit
+bt_Quit_normal = pygame.transform.scale(bt4, (180, 100))
+
+
+# Calculate button positions
+button_width = 180
+space_between_buttons = 20
+# Calculate the total width of all buttons including spaces between them
+total_buttons_width = 4 * button_width + 3 * space_between_buttons
+# Calculate starting x position to center the buttons
+start_x = 650 # Use integer division for pixel positions
+y_position = 500 # Center vertically
+
+
+# Creating button instances
+button1 = Button(bt_Single, start_x, y_position)
+button2 = Button(bt_Multi, start_x + button_width + space_between_buttons, y_position)
+button3 = Button(bt_Option, start_x + 2 * (button_width + space_between_buttons), y_position)
+button4 = Button(bt_Quit, start_x + 3 * (button_width + space_between_buttons), y_position)
+
 
 
 def main_menu():
-    
     while True:
-
         screen.blit(background, (0, 0))
-
         mx, my = pygame.mouse.get_pos()
+        mouse_pressed = pygame.mouse.get_pressed()[0]
 
-        button_1 = screen.blit(bt_Single, (screen_width/2 + 180 , screen_height/2 - 250))
-        button_2 = screen.blit(bt_Multi, (screen_width/2 + 180, screen_height/2 -100 ))
-        button_3 = screen.blit(bt_Option, (screen_width/2 + 180, screen_height/2 +50))
-        button_4 = screen.blit(bt_Quit, (screen_width/2 + 180, screen_height/2 + 200))
+        # Update and draw buttons
+        button1.update((mx, my))
+        button1.draw(screen)
+        button2.update((mx, my))
+        button2.draw(screen)
+        button3.update((mx, my))
+        button3.draw(screen)
+        button4.update((mx, my))
+        button4.draw(screen)
 
-        if button_1.collidepoint((mx, my)):
-            if pygame.mouse.get_pressed()[0] == 1:
-                singleplayer()
-            else:
-                pass
-        if button_2.collidepoint((mx, my)):
-            if pygame.mouse.get_pressed()[0] == 1:
-                multiplayer()
-            else:
-                pass
-        if button_3.collidepoint((mx, my)):
-            if pygame.mouse.get_pressed()[0] == 1:
-                option()
-            else:
-                pass
-        if button_4.collidepoint((mx, my)):
-            if pygame.mouse.get_pressed()[0] == 1:
-                quit()
-            else:
-                pass
+        # Check if buttons are clicked
+        if button1.is_clicked((mx, my), mouse_pressed):
+            singleplayer()  # Ensure this function is defined elsewhere in your code
+        if button2.is_clicked((mx, my), mouse_pressed):
+            multiplayer()  # Ensure this function is defined elsewhere in your code
+        if button3.is_clicked((mx, my), mouse_pressed):
+            option()  # Ensure this function is defined elsewhere in your code
+        if button4.is_clicked((mx, my), mouse_pressed):
+            quit()  # This will quit the game
+
+        # Event handling
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
-                  pygame.quit()
-                  sys.exit()
+                    pygame.quit()
+                    sys.exit()
 
-        
         pygame.display.update()
         clock.tick(60)
+
 
 def singleplayer():
     import Single_levelSelect
@@ -117,21 +168,24 @@ def option():
     font100.set_underline(True)
     textUnderline = font100.render("OPTION", True, (255, 128, 0))
     
+    option_box_y = 400  # Adjust the y position of the option box
 
     while running:
 
         screen.blit(background, (0, 0))
-        pygame.draw.rect(screen, (255,255,255), pygame.Rect(int(screen_width / 2  +50), 200, screen_width/3, screen_height/3))
-        screen.blit(textUnderline, (screen_width/2 +200, 220))
-        draw_text('Music :', font80, (0, 0, 0), screen, screen_width/2 + 80, 350)
+        pygame.draw.rect(screen, (255,255,255), pygame.Rect(int(screen_width / 2  +50), option_box_y, screen_width/3, screen_height/3))
+        screen.blit(textUnderline, (screen_width/2 + 200, option_box_y + 20))
+        draw_text('Music:', font80, (0, 0, 0), screen, screen_width/2 + 80, option_box_y + 150)
 
-        button = screen.blit(bt_Off, (screen_width/2 + 320, 360))
+        button_width = 150
+        button_height = 150
+        button_x = screen_width/2 + 280
+        button_y = option_box_y + 120
 
         if music_paused:
-            button = screen.blit(bt_Off, (screen_width/2 + 320 , 360))
+            button = screen.blit(pygame.transform.scale(bt_Off, (button_width, button_height)), (button_x, button_y))
         else:
-            button = screen.blit(bt_On, (screen_width/2 + 320, 360  ))
-
+            button = screen.blit(pygame.transform.scale(bt_On, (button_width, button_height)), (button_x, button_y))
 
         
         for event in pygame.event.get():
